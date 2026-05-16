@@ -2,7 +2,7 @@
 
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
 
-import type { RiskVector } from "@aegis/shared";
+import type { RiskVector } from "@/lib/demo-data";
 
 export function RiskRadarChart({ vector }: { vector: RiskVector }) {
   const data = [
@@ -27,4 +27,3 @@ export function RiskRadarChart({ vector }: { vector: RiskVector }) {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import { dashboardMock } from "@aegis/shared";
+import { dashboardMock } from "@/lib/demo-data";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { GlassCard } from "@/components/ui/card";

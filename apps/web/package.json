@@ -11,7 +11,7 @@
     "format": "prettier --check ."
   },
   "dependencies": {
-    "@aegis/shared": "*",
+    "@aegis/shared": "file:../../packages/shared",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.12.1",

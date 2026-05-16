@@ -1,4 +1,4 @@
-import { dashboardMock } from "@aegis/shared";
+import { dashboardMock } from "@/lib/demo-data";
 
 import { RiskRadarChart } from "@/components/charts/risk-radar-chart";
 import { AppShell } from "@/components/layout/app-shell";
@@ -86,4 +86,3 @@ export default function RiskTerminalPage() {
     </AppShell>
   );
 }
-

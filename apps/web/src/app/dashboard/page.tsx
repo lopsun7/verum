@@ -1,4 +1,4 @@
-import { dashboardMock } from "@aegis/shared";
+import { dashboardMock } from "@/lib/demo-data";
 
 import { ChainAllocationChart } from "@/components/charts/chain-allocation-chart";
 import { ForecastChart } from "@/components/charts/forecast-chart";
@@ -137,4 +137,3 @@ export default function DashboardPage() {
     </AppShell>
   );
 }
-

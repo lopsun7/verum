@@ -2,7 +2,7 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-import type { ChainAllocation } from "@aegis/shared";
+import type { ChainAllocation } from "@/lib/demo-data";
 
 import { formatCompactCurrency } from "@/lib/utils";
 
@@ -40,4 +40,3 @@ export function ChainAllocationChart({ data }: { data: ChainAllocation[] }) {
     </div>
   );
 }
-

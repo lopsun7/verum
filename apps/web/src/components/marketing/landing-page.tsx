@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Bot, Cable, ChartNoAxesCombined, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { dashboardMock } from "@aegis/shared";
+import { dashboardMock } from "@/lib/demo-data";
 
 import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -262,4 +262,3 @@ export function LandingPage() {
     </div>
   );
 }
-

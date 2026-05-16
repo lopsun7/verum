@@ -1,8 +1,12 @@
-import { dashboardMock, type DashboardPayload } from "@aegis/shared";
+import { dashboardMock, type DashboardPayload } from "@/lib/demo-data";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getDashboardPayload(): Promise<DashboardPayload> {
+  if (!apiUrl) {
+    return dashboardMock;
+  }
+
   try {
     const response = await fetch(`${apiUrl}/api/dashboard`, {
       cache: "no-store"
@@ -17,4 +21,3 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
     return dashboardMock;
   }
 }
-

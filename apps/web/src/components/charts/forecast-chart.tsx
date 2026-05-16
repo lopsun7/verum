@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import type { YieldForecastPoint } from "@aegis/shared";
+import type { YieldForecastPoint } from "@/lib/demo-data";
 
 export function ForecastChart({ data }: { data: YieldForecastPoint[] }) {
   return (
@@ -38,4 +38,3 @@ export function ForecastChart({ data }: { data: YieldForecastPoint[] }) {
     </div>
   );
 }
-

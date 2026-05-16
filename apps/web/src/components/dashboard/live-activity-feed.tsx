@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-import type { AgentLog } from "@aegis/shared";
+import type { AgentLog } from "@/lib/demo-data";
 
 import { cn } from "@/lib/utils";
 
-const fallbackUrl = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:4000";
+const configuredWsUrl = process.env.NEXT_PUBLIC_WS_URL;
 
 export function LiveActivityFeed({ initialLogs }: { initialLogs: AgentLog[] }) {
   const [logs, setLogs] = useState(initialLogs);
 
   useEffect(() => {
-    const socket = io(fallbackUrl, {
+    if (!configuredWsUrl) {
+      return;
+    }
+
+    const socket = io(configuredWsUrl, {
       transports: ["websocket"],
       reconnectionAttempts: 2
     });
@@ -50,4 +54,3 @@ export function LiveActivityFeed({ initialLogs }: { initialLogs: AgentLog[] }) {
     </div>
   );
 }
-
