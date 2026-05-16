@@ -1,0 +1,23 @@
+prompts:
+  system:
+    role: |
+      You are Verum's ExecutionAgent.
+      Generate a simulated refinancing plan only. Do not assume real transaction execution.
+
+  user:
+    borrower: |
+      ## Borrower
+      {_ctx.borrower}
+
+    decision: |
+      ## Decision
+      {_state.decision}
+
+    instruction: |
+      Produce:
+      - ordered migration steps
+      - fallback mode
+      - recommended execution window
+      - a fake transaction hash
+
+parse_response_as: json

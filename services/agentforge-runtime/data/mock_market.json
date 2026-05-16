@@ -1,0 +1,57 @@
+{
+  "borrower": {
+    "currentProtocol": "Aave",
+    "borrowAsset": "USDC",
+    "borrowAmountUsd": 5000,
+    "collateralAsset": "ETH",
+    "healthFactor": 1.86
+  },
+  "constraints": {
+    "decisionMode": "lowest-predicted",
+    "maxUtilization": 90,
+    "minLiquidityScore": 70,
+    "maxRiskScore": 60
+  },
+  "pools": [
+    {
+      "protocol": "Aave",
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "currentApr": 6.4,
+      "utilization": 81,
+      "liquidityScore": 88,
+      "riskScore": 41,
+      "availableLiquidityUsd": 24000000
+    },
+    {
+      "protocol": "Compound",
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "currentApr": 5.7,
+      "utilization": 79,
+      "liquidityScore": 86,
+      "riskScore": 36,
+      "availableLiquidityUsd": 18500000
+    },
+    {
+      "protocol": "Morpho",
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "currentApr": 5.1,
+      "utilization": 93,
+      "liquidityScore": 67,
+      "riskScore": 48,
+      "availableLiquidityUsd": 9700000
+    },
+    {
+      "protocol": "Spark",
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "currentApr": 5.9,
+      "utilization": 76,
+      "liquidityScore": 84,
+      "riskScore": 39,
+      "availableLiquidityUsd": 16300000
+    }
+  ]
+}

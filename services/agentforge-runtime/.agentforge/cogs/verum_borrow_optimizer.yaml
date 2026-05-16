@@ -1,0 +1,26 @@
+cog:
+  name: "VerumBorrowOptimizer"
+  description: "AgentForge cog for analyzing DeFi borrow pools and simulating debt migration."
+  chat_memory_enabled: false
+
+  agents:
+    - id: rate_data
+      template_file: verum_rate_data_agent
+
+    - id: prediction
+      template_file: verum_prediction_agent
+
+    - id: decision
+      template_file: verum_decision_agent
+
+    - id: execution
+      template_file: verum_execution_agent
+
+  flow:
+    start: rate_data
+    transitions:
+      rate_data: prediction
+      prediction: decision
+      decision: execution
+      execution:
+        end: execution

@@ -1,91 +1,110 @@
-# Aegis AI
+# Verum
 
-Aegis AI is an autonomous AI-powered DeFi treasury management platform designed for institutional stablecoin operators. It predicts future yield, scores protocol risk, watches liquidity and sentiment, and reallocates capital across chains before conditions change.
+Verum is an autonomous AI-powered DeFi borrow rate optimizer. It analyzes borrow APRs across lending pools, predicts short-term interest-rate movement, chooses the best risk-adjusted venue, and simulates how a borrower would migrate debt to the lowest predicted or currently available borrowing cost.
 
-## What is included
+## Product focus
 
-- `apps/web`: Next.js 15 frontend with a cinematic MetaMask-inspired landing page and five product surfaces.
-- `apps/api`: Fastify + Prisma API with WebSocket streaming for live treasury activity.
-- `services/agent-orchestrator`: AgentField-style multi-agent control plane with Bright Data, Actionbook, Qwen, Qoder, and GLM/Z.ai integration adapters.
-- `packages/contracts`: Solidity treasury vault and execution module for autonomous policy-driven capital movement.
-- `docs/`: architecture, Zeabur deployment guidance, and a hackathon pitch deck.
+Verum is built as a multi-agent DeFi lending optimizer:
 
-## Product surfaces
+- `RateDataAgent` collects pool data from Aave, Compound, Morpho, and Spark.
+- `PredictionAgent` forecasts near-term borrow APR movement from utilization and liquidity conditions.
+- `DecisionAgent` selects the best risk-adjusted venue under user-defined constraints.
+- `ExecutionAgent` simulates refinancing steps and returns a fake transaction receipt for the demo.
 
-- Landing page with cinematic hero, animated capital graph, APY ticker, protocol coverage, and institutional messaging.
-- Dashboard with portfolio value, chain allocation pie, predicted APY chart, protocol heatmap, live transactions, and AI agent feed.
-- AI Allocation Engine showing positions, future yield forecasts, recommendations, confidence, and reasoning.
-- Protocol Risk Terminal with radar views, safety heatmaps, exploit probability, and policy thresholds.
-- Autonomous Agent Console with terminal-like live logs, agent topology, and shared memory state.
-- Wallet page for MetaMask, WalletConnect, and Coinbase Wallet flows across six supported chains.
+For the hackathon demo, the market runs on fake chain state and editable mock data so the app stays highly interactive without needing real onchain execution.
 
-## Hackathon integrations
+## Repo structure
 
-- `AgentField`: represented by the agent microservice orchestration layer and shared memory dispatch APIs.
-- `Actionbook`: fallback execution planner for browser automation when DeFi APIs fail.
-- `Bright Data`: live scraping adapter for protocol, governance, and sentiment intelligence.
-- `Qwen Cloud`: reasoning and explainability hooks for protocol risk and allocation narratives.
-- `Qoder`: Repo Wiki sync adapter for autonomous engineering workflows.
-- `Zeabur`: deployment manifest, Dockerfiles, and CI/CD structure.
-- `Z.ai / GLM`: executive summary and reporting adapter for multimodal outputs.
+- `apps/web`: Next.js 15 frontend with a cinematic borrower dashboard, mobile navigation, and interactive fake-chain simulation.
+- `apps/api`: Fastify API with WebSocket-style simulated recommendation updates.
+- `services/agent-orchestrator`: current TypeScript agent loop used by the demo.
+- `services/agentforge-runtime`: AgentForge-based runtime scaffold for future agent development using YAML Cogs, personas, and memory-driven orchestration.
+- `packages/shared`: shared borrow-market types and demo payloads.
+- `packages/contracts`: optional Solidity vault and execution scaffolding kept for future onchain expansion.
+
+## Tech stack
+
+Implemented in code today:
+
+- `Next.js 15`
+- `React`
+- `Tailwind CSS`
+- `Framer Motion`
+- `Recharts`
+- `Fastify`
+- `TypeScript`
+- `Prisma`
+- `PostgreSQL` schema scaffolding
+- `Solidity` / `Hardhat`
+
+Integrated or scaffolded for the agent roadmap:
+
+- `AgentForge`: primary framework for future agent development with Cogs, personas, and YAML-first orchestration
+- `AgentField`: async orchestration and shared memory coordination layer
+- `Actionbook`: fallback browser automation for protocol actions
+- `Bright Data`: market, governance, and sentiment ingestion
+- `Qwen Cloud`: reasoning-heavy policy and explainability layer
+- `Qoder`: repo wiki and AI engineering workflow support
+- `Z.ai / GLM`: reporting, summaries, and multimodal brief generation
+- `Zeabur`: production backend deployment target
+
+## Demo scenario
+
+The starter market uses mock USDC borrow data:
+
+- Aave: `6.4%`
+- Compound: `5.7%`
+- Morpho: `5.1%`
+- Spark: `5.9%`
+
+Prediction rules:
+
+- utilization `> 90%` => `current APR + 1.8%`
+- utilization `> 80%` => `current APR + 0.7%`
+- utilization `< 75%` => `current APR + 0.2%`
+- low liquidity adds a risk penalty
+
+Base recommendation:
+
+- Morpho is cheapest now, but its utilization is too high.
+- Compound wins on a risk-adjusted predicted basis.
+- The simulated recommendation moves a `5,000 USDC` borrow position from Aave to Compound.
+
+## Interactive demo controls
+
+The deployed frontend demo is intentionally adjustable:
+
+- edit mock APR, utilization, liquidity, and risk per pool
+- randomize market conditions
+- switch scenarios such as `Morpho Spike` and `Liquidity Crunch`
+- set agent constraints like max utilization or minimum liquidity
+- simulate autonomous refinancing with a fake transaction hash
+
+## AgentForge development path
+
+The current interactive app still uses the TypeScript demo agent loop so it can stay lightweight on Vercel, but the repo now also includes an AgentForge-aligned runtime scaffold at:
+
+- [services/agentforge-runtime/README.md](/Users/lopsun/Documents/New project 2/services/agentforge-runtime/README.md:1)
+- [services/agentforge-runtime/.agentforge/cogs/verum_borrow_optimizer.yaml](/Users/lopsun/Documents/New project 2/services/agentforge-runtime/.agentforge/cogs/verum_borrow_optimizer.yaml:1)
+- [docs/AGENTFORGE_RUNTIME.md](/Users/lopsun/Documents/New project 2/docs/AGENTFORGE_RUNTIME.md:1)
+
+That path is meant for real multi-agent development once you want to move beyond the fake-chain demo.
 
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env
-npm run prisma:generate -w @aegis/api
-docker compose up -d postgres
-npm run prisma:push -w @aegis/api
-npm run dev
+npm run build -w @aegis/web
 ```
 
-Frontend: [http://localhost:3000](http://localhost:3000)  
-API: [http://localhost:4000/health](http://localhost:4000/health)  
-Agents: [http://localhost:4100/health](http://localhost:4100/health)
+## Vercel deployment
 
-## Core architecture
+The frontend can be deployed standalone on Vercel from the repo root because `vercel.json` forces Vercel to build only `apps/web`.
 
-```mermaid
-flowchart LR
-  U[User Treasury] --> W[Next.js 15 Frontend]
-  W --> A[Fastify API + WebSockets]
-  A --> P[(PostgreSQL + Prisma)]
-  A --> O[Agent Orchestrator]
-  O --> AF[AgentField]
-  O --> BD[Bright Data]
-  O --> QW[Qwen Cloud]
-  O --> AB[Actionbook]
-  O --> QD[Qoder Repo Wiki]
-  O --> GLM[Z.ai / GLM]
-  O --> EX[Execution Agent]
-  EX --> SC[Smart Contracts]
-  SC --> D[DeFi Protocols]
-```
+## Backend path
 
-## Agent system
+If you want real AI and live protocol data later:
 
-- Yield Prediction Agent: forecasts APYs using LSTM, XGBoost, and transformer ensemble hooks.
-- Risk Analysis Agent: scores exploit probability, oracle exposure, liquidity, governance, and bad debt.
-- Sentiment Agent: ingests governance discussions and X/Twitter-style signals.
-- Execution Agent: plans bridges, swaps, batching, and MEV-aware routing with Actionbook fallback.
-- Explainability Agent: produces human-readable reasoning, expected gain, and confidence.
-
-## Supported chains and venues
-
-- Chains: Ethereum, Base, Arbitrum, Optimism, Polygon, Solana
-- Venues: Aave, Morpho, Compound, Spark, Pendle, Ethena, MakerDAO
-
-## Deployment
-
-- Dockerfiles included for `web`, `api`, and `agents`
-- `docker-compose.yml` included for local stack orchestration
-- `zeabur.json` included for service definitions
-- GitHub Actions CI pipeline included in `.github/workflows/ci.yml`
-
-## Notes
-
-- The repo ships with realistic demo data and autonomous event simulation so the experience remains compelling even before live protocol credentials are configured.
-- The integration adapters are structured for production but keep secrets externalized through environment variables.
-- Smart contracts intentionally separate treasury custody from the offchain AI orchestration layer.
-
+- keep `apps/web` on Vercel
+- deploy `apps/api` and `services/agent-orchestrator` or `services/agentforge-runtime` on Zeabur, Railway, Render, or Fly.io
+- add real model/provider keys in `.env`

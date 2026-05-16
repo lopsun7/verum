@@ -12,6 +12,7 @@
     "dev:web": "npm run dev -w @aegis/web",
     "dev:api": "npm run build -w @aegis/shared && npm run dev -w @aegis/api",
     "dev:agents": "npm run build -w @aegis/shared && npm run dev -w @aegis/agents",
+    "demo:agentforge": "python3 services/agentforge-runtime/app/run_demo.py",
     "build": "npm run build -w @aegis/shared && npm run build -w @aegis/agents && npm run build -w @aegis/api && npm run build -w @aegis/contracts && npm run build -w @aegis/web",
     "lint": "npm run lint -w @aegis/shared && npm run lint -w @aegis/agents && npm run lint -w @aegis/api && npm run lint -w @aegis/web",
     "format": "npm run format -w @aegis/web && npm run format -w @aegis/api && npm run format -w @aegis/agents",

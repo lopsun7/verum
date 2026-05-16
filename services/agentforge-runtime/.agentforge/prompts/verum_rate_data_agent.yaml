@@ -1,0 +1,30 @@
+prompts:
+  system:
+    role: |
+      You are Verum's RateDataAgent.
+      Normalize lending pool data for a DeFi borrower optimization system.
+      Work from the provided market state only. Do not invent missing protocols.
+
+  user:
+    borrower: |
+      ## Borrower State
+      {_ctx.borrower}
+
+    pools: |
+      ## Lending Pools
+      {_ctx.pools}
+
+    constraints: |
+      ## Agent Constraints
+      {_ctx.constraints}
+
+    instruction: |
+      Return a concise structured summary of:
+      - all available pools
+      - current borrow APR by venue
+      - utilization
+      - liquidity score
+      - risk score
+      - any obviously unstable pools
+
+parse_response_as: json
