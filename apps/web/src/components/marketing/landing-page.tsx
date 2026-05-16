@@ -7,35 +7,34 @@ import { motion } from "framer-motion";
 import { dashboardMock } from "@/lib/demo-data";
 
 import { Pill } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/card";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
 
 const featureCards = [
   {
-    title: "Predictive Reallocation",
+    title: "Borrow APR Forecasting",
     icon: ChartNoAxesCombined,
-    copy: "LSTM, gradient boosting, and transformer signals move capital before yield curves shift."
+    copy: "Predict short-term borrow APR moves before utilization spikes turn the cheapest pool into the most expensive one."
   },
   {
-    title: "Protocol Risk Terminal",
+    title: "Liquidity-Aware Pool Ranking",
     icon: ShieldCheck,
-    copy: "Exploit probability, oracle exposure, governance concentration, and bad debt are scored in real time."
+    copy: "Compare current APR, predicted APR, liquidity depth, and risk-adjusted borrower stability across protocols."
   },
   {
-    title: "Autonomous Execution",
+    title: "Autonomous Migration Plans",
     icon: Zap,
-    copy: "Bridges, swaps, batching, and MEV-aware routing are coordinated through specialized agents."
+    copy: "Generate a borrower-ready refinance checklist without touching mainnet funds during the hackathon demo."
   },
   {
-    title: "Fallback Browser Actions",
+    title: "Four-Agent Reasoning Stack",
     icon: Cable,
-    copy: "Actionbook verified selectors keep capital mobile even when APIs degrade or change."
+    copy: "RateDataAgent, PredictionAgent, DecisionAgent, and ExecutionAgent divide the optimization workflow cleanly."
   }
 ];
 
-const protocols = ["Aave", "Morpho", "Compound", "Spark", "Pendle", "Ethena", "MakerDAO", "DefiLlama"];
+const protocols = ["Aave", "Morpho", "Compound", "Spark"];
 
 export function LandingPage() {
   return (
@@ -45,11 +44,11 @@ export function LandingPage() {
         <header className="mb-14 flex items-center justify-between rounded-[30px] border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ff8f3f] to-[#ffc07d] text-lg font-semibold text-slate-950">
-              A
+              V
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-[0.24em] uppercase text-white/75">Aegis AI</p>
-              <p className="text-xs text-white/45">Autonomous AI treasury infrastructure</p>
+              <p className="text-sm font-semibold tracking-[0.24em] uppercase text-white/75">Verum</p>
+              <p className="text-xs text-white/45">Autonomous DeFi borrow optimizer</p>
             </div>
           </div>
           <div className="hidden items-center gap-3 md:flex">
@@ -75,13 +74,12 @@ export function LandingPage() {
 
         <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="pt-4">
-            <Pill className="mb-5 border-[#ff9340]/25 bg-[#ff9340]/12 text-[#ffd4b0]">Live capital orchestration</Pill>
+            <Pill className="mb-5 border-[#ff9340]/25 bg-[#ff9340]/12 text-[#ffd4b0]">Short-term DeFi borrow intelligence</Pill>
             <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl">
-              Autonomous AI Treasury Infrastructure
+              Autonomous Borrow Rate Optimization
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/62 md:text-lg">
-              Aegis AI reallocates stablecoin treasury capital across chains and lending venues using predictive yield models,
-              protocol risk engines, and autonomous execution agents built for institutional operators.
+              Verum analyzes borrow APRs across DeFi money markets, predicts short-term rate changes, and recommends where a borrower should move debt to minimize expected interest cost.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -96,9 +94,9 @@ export function LandingPage() {
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               {[
-                ["Predicted Net APY", formatPercent(dashboardMock.metric.predictedNetApy)],
-                ["Protected Capital", `${dashboardMock.metric.protectedCapital}%`],
-                ["Reallocated Today", formatCompactCurrency(2_840_000)]
+                ["Active Borrow", formatCompactCurrency(dashboardMock.metric.activeBorrowUsd)],
+                ["Best Predicted APR", formatPercent(dashboardMock.metric.bestPredictedBorrowApr)],
+                ["Projected Savings", formatCompactCurrency(dashboardMock.metric.projectedMonthlySavingsUsd)]
               ].map(([label, value]) => (
                 <GlassCard key={label} className="rounded-[26px] p-5">
                   <p className="text-xs uppercase tracking-[0.28em] text-white/42">{label}</p>
@@ -118,8 +116,8 @@ export function LandingPage() {
             <div className="relative">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <p className="text-xs tracking-[0.32em] text-white/42 uppercase">Treasury Pulse</p>
-                  <h2 className="mt-2 text-2xl font-semibold">AI Capital Flow Engine</h2>
+                  <p className="text-xs tracking-[0.32em] text-white/42 uppercase">Borrow Pulse</p>
+                  <h2 className="mt-2 text-2xl font-semibold">Rate Routing Engine</h2>
                 </div>
                 <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">
                   Live
@@ -132,10 +130,9 @@ export function LandingPage() {
                   {[
                     { label: "Aave", x: "8%", y: "12%" },
                     { label: "Morpho", x: "66%", y: "12%" },
-                    { label: "Base", x: "72%", y: "48%" },
-                    { label: "Arbitrum", x: "18%", y: "58%" },
-                    { label: "Pendle", x: "52%", y: "68%" },
-                    { label: "Risk AI", x: "34%", y: "34%" }
+                    { label: "Compound", x: "72%", y: "48%" },
+                    { label: "Spark", x: "18%", y: "58%" },
+                    { label: "Decision AI", x: "34%", y: "34%" }
                   ].map((node, index) => (
                     <motion.div
                       key={node.label}
@@ -170,8 +167,8 @@ export function LandingPage() {
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 {[
                   ["AI Confidence", `${dashboardMock.metric.aiConfidence}%`],
-                  ["Gas Efficiency", `${dashboardMock.metric.gasEfficiency}%`],
-                  ["Emergency Exits", "2 playbooks"]
+                  ["Execution Ready", `${dashboardMock.metric.executionReadiness}%`],
+                  ["Tracked Protocols", "4 venues"]
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-[24px] border border-white/8 bg-white/6 p-4">
                     <p className="text-xs text-white/40">{label}</p>
@@ -189,7 +186,7 @@ export function LandingPage() {
               {dashboardMock.allocations.concat(dashboardMock.allocations).map((allocation, index) => (
                 <span key={`${allocation.protocol}-${index}`} className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-[#ff9340]" />
-                  {allocation.protocol} {allocation.asset} forecast {formatPercent(allocation.predictedApy)}
+                  {allocation.protocol} {allocation.asset} borrow forecast {formatPercent(allocation.predictedApr)}
                 </span>
               ))}
             </div>
@@ -223,15 +220,15 @@ export function LandingPage() {
         <section className="mt-20 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <GlassCard className="rounded-[30px]">
             <p className="text-xs uppercase tracking-[0.28em] text-white/42">Operational Coverage</p>
-            <h2 className="mt-4 text-3xl font-semibold">Multi-agent treasury control plane</h2>
+            <h2 className="mt-4 text-3xl font-semibold">Four-agent borrower control plane</h2>
             <div className="mt-8 space-y-4">
               {[
-                ["AgentField", "Async microservices, shared memory, observability, and multi-agent scheduling."],
-                ["Bright Data", "Live DeFi intelligence from protocols, governance forums, DefiLlama, and X sentiment."],
-                ["Qwen Cloud", "Risk reasoning, anomaly detection, and explainable capital movement narratives."],
-                ["Actionbook", "Browser-level fallback execution with verified selectors when APIs fail."],
-                ["Z.ai / GLM", "Multimodal summaries, chart interpretation, reporting, and pitch generation."],
-                ["Zeabur", "One-command deployment with CI/CD and managed service topology."]
+                ["RateDataAgent", "Collects lending pool data across protocols and normalizes current borrow APRs."],
+                ["PredictionAgent", "Applies utilization and liquidity rules to estimate short-term borrow rate movement."],
+                ["DecisionAgent", "Chooses the best risk-adjusted pool instead of simply chasing the lowest current APR."],
+                ["ExecutionAgent", "Produces a simulated debt migration plan and fake transaction receipt for the borrower."],
+                ["Actionbook", "Reserved for future browser-based execution if protocol APIs break."],
+                ["Zeabur / Vercel", "Deploy the agent backend and the dashboard separately for the hackathon demo."]
               ].map(([title, copy]) => (
                 <div key={title} className="rounded-[24px] border border-white/8 bg-slate-950/45 px-5 py-4">
                   <p className="text-lg font-medium">{title}</p>
@@ -258,9 +255,9 @@ export function LandingPage() {
               <div className="flex items-start gap-4">
                 <Bot className="mt-1 h-6 w-6 text-[#ffb36b]" />
                 <div>
-                  <p className="text-lg font-semibold">Every capital move is explainable.</p>
+                  <p className="text-lg font-semibold">Every debt migration is explainable.</p>
                   <p className="mt-2 max-w-2xl text-sm leading-7 text-white/68">
-                    The Explainability Agent generates a rationale, expected gain, confidence score, and detected risks before any autonomous rebalance is executed.
+                    The DecisionAgent compares current APR, predicted APR, utilization, liquidity, and risk level before recommending where the borrower should refinance.
                   </p>
                 </div>
               </div>

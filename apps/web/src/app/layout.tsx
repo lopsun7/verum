@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 
+import { SimulationProvider } from "@/components/providers/simulation-provider";
+
 import "./globals.css";
 
 const heading = Space_Grotesk({
@@ -15,8 +17,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aegis AI",
-  description: "Autonomous AI-powered DeFi treasury management platform."
+  title: "Verum",
+  description: "Autonomous AI-powered DeFi borrow rate optimizer."
 };
 
 export default function RootLayout({
@@ -26,8 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${heading.variable} ${mono.variable} antialiased`}>{children}</body>
+      <body className={`${heading.variable} ${mono.variable} antialiased`}>
+        <SimulationProvider>{children}</SimulationProvider>
+      </body>
     </html>
   );
 }
-

@@ -2,9 +2,9 @@
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import type { YieldForecastPoint } from "@/lib/demo-data";
+import type { BorrowForecastPoint } from "@/lib/demo-data";
 
-export function ForecastChart({ data }: { data: YieldForecastPoint[] }) {
+export function ForecastChart({ data }: { data: BorrowForecastPoint[] }) {
   return (
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">

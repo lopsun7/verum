@@ -1,29 +1,16 @@
-export type SupportedChain =
-  | "Ethereum"
-  | "Base"
-  | "Arbitrum"
-  | "Optimism"
-  | "Polygon"
-  | "Solana";
+export type SupportedChain = "Ethereum" | "Base" | "Arbitrum" | "Optimism";
 
-export type SupportedProtocol =
-  | "Aave"
-  | "Morpho"
-  | "Compound"
-  | "Spark"
-  | "Pendle"
-  | "Ethena"
-  | "MakerDAO";
+export type SupportedProtocol = "Aave" | "Morpho" | "Compound" | "Spark";
 
-export type StableAsset = "USDC" | "DAI" | "USDT" | "sUSDe";
+export type StableAsset = "USDC";
 
 export interface PortfolioMetric {
-  totalValueUsd: number;
-  predictedNetApy: number;
-  realizedMonthlyAlpha: number;
+  activeBorrowUsd: number;
+  currentWeightedBorrowApr: number;
+  bestPredictedBorrowApr: number;
+  projectedMonthlySavingsUsd: number;
   aiConfidence: number;
-  gasEfficiency: number;
-  protectedCapital: number;
+  executionReadiness: number;
 }
 
 export interface ChainAllocation {
@@ -37,14 +24,19 @@ export interface ProtocolAllocation {
   protocol: SupportedProtocol;
   chain: SupportedChain;
   asset: StableAsset;
-  valueUsd: number;
-  currentApy: number;
-  predictedApy: number;
+  availableLiquidityUsd: number;
+  currentApr: number;
+  predictedApr: number;
+  utilization: number;
+  liquidityScore: number;
   riskScore: number;
-  health: "Healthy" | "Watch" | "Exit";
+  health: "Stable" | "Monitor" | "Volatile";
+  currentMonthlyCostUsd: number;
+  predictedMonthlyCostUsd: number;
+  isCurrentPosition?: boolean;
 }
 
-export interface YieldForecastPoint {
+export interface BorrowForecastPoint {
   timestamp: string;
   aave: number;
   morpho: number;
@@ -82,10 +74,12 @@ export interface AllocationMove {
   toChain: SupportedChain;
   asset: StableAsset;
   amountUsd: number;
-  expectedGainBps: number;
+  expectedMonthlySavingsUsd: number;
   confidence: number;
   reason: string;
-  status: "Queued" | "Simulating" | "Executing" | "Settled";
+  status: "Queued" | "Simulating" | "Ready";
+  simulatedTxHash: string;
+  steps: string[];
 }
 
 export interface WalletSummary {
@@ -103,111 +97,148 @@ export interface DashboardPayload {
   metric: PortfolioMetric;
   chains: ChainAllocation[];
   allocations: ProtocolAllocation[];
-  forecasts: YieldForecastPoint[];
+  forecasts: BorrowForecastPoint[];
   riskVectors: RiskVector[];
   agentLogs: AgentLog[];
   moves: AllocationMove[];
   wallets: WalletSummary[];
 }
 
-export const protocolSafetyPalette: Record<ProtocolAllocation["health"], string> = {
-  Healthy: "#34d399",
-  Watch: "#f59e0b",
-  Exit: "#f87171"
-};
-
 export const dashboardMock: DashboardPayload = {
   metric: {
-    totalValueUsd: 12480000,
-    predictedNetApy: 12.8,
-    realizedMonthlyAlpha: 3.4,
-    aiConfidence: 91,
-    gasEfficiency: 87,
-    protectedCapital: 93
+    activeBorrowUsd: 5000,
+    currentWeightedBorrowApr: 6.4,
+    bestPredictedBorrowApr: 5.9,
+    projectedMonthlySavingsUsd: 3.0,
+    aiConfidence: 88,
+    executionReadiness: 94
   },
   chains: [
-    { chain: "Ethereum", valueUsd: 3980000, share: 31.9, change24h: 2.1 },
-    { chain: "Base", valueUsd: 2560000, share: 20.5, change24h: 5.6 },
-    { chain: "Arbitrum", valueUsd: 2240000, share: 17.9, change24h: 1.4 },
-    { chain: "Optimism", valueUsd: 1710000, share: 13.7, change24h: -0.4 },
-    { chain: "Polygon", valueUsd: 1090000, share: 8.7, change24h: 1.1 },
-    { chain: "Solana", valueUsd: 900000, share: 7.3, change24h: 4.9 }
+    { chain: "Ethereum", valueUsd: 10900, share: 58, change24h: 1.2 },
+    { chain: "Base", valueUsd: 5200, share: 28, change24h: 2.4 },
+    { chain: "Arbitrum", valueUsd: 1800, share: 10, change24h: -0.3 },
+    { chain: "Optimism", valueUsd: 700, share: 4, change24h: 0.5 }
   ],
   allocations: [
-    { protocol: "Aave", chain: "Ethereum", asset: "USDC", valueUsd: 2400000, currentApy: 6.2, predictedApy: 7.8, riskScore: 18, health: "Healthy" },
-    { protocol: "Morpho", chain: "Base", asset: "USDC", valueUsd: 1840000, currentApy: 8.9, predictedApy: 11.6, riskScore: 22, health: "Healthy" },
-    { protocol: "Compound", chain: "Arbitrum", asset: "USDT", valueUsd: 1360000, currentApy: 5.4, predictedApy: 6.8, riskScore: 27, health: "Watch" },
-    { protocol: "Spark", chain: "Optimism", asset: "DAI", valueUsd: 1480000, currentApy: 7.1, predictedApy: 8.3, riskScore: 20, health: "Healthy" },
-    { protocol: "Pendle", chain: "Ethereum", asset: "sUSDe", valueUsd: 2140000, currentApy: 13.8, predictedApy: 14.9, riskScore: 35, health: "Watch" },
-    { protocol: "Ethena", chain: "Base", asset: "sUSDe", valueUsd: 1880000, currentApy: 15.1, predictedApy: 16.3, riskScore: 38, health: "Watch" },
-    { protocol: "MakerDAO", chain: "Polygon", asset: "DAI", valueUsd: 1390000, currentApy: 4.7, predictedApy: 5.1, riskScore: 16, health: "Healthy" }
+    {
+      protocol: "Aave",
+      chain: "Ethereum",
+      asset: "USDC",
+      availableLiquidityUsd: 3_600_000,
+      currentApr: 6.4,
+      predictedApr: 7.1,
+      utilization: 82,
+      liquidityScore: 88,
+      riskScore: 22,
+      health: "Monitor",
+      currentMonthlyCostUsd: 26.67,
+      predictedMonthlyCostUsd: 29.58,
+      isCurrentPosition: true
+    },
+    {
+      protocol: "Compound",
+      chain: "Ethereum",
+      asset: "USDC",
+      availableLiquidityUsd: 2_900_000,
+      currentApr: 5.7,
+      predictedApr: 5.9,
+      utilization: 74,
+      liquidityScore: 91,
+      riskScore: 14,
+      health: "Stable",
+      currentMonthlyCostUsd: 23.75,
+      predictedMonthlyCostUsd: 24.58
+    },
+    {
+      protocol: "Morpho",
+      chain: "Base",
+      asset: "USDC",
+      availableLiquidityUsd: 1_100_000,
+      currentApr: 5.1,
+      predictedApr: 6.9,
+      utilization: 93,
+      liquidityScore: 62,
+      riskScore: 31,
+      health: "Volatile",
+      currentMonthlyCostUsd: 21.25,
+      predictedMonthlyCostUsd: 28.75
+    },
+    {
+      protocol: "Spark",
+      chain: "Ethereum",
+      asset: "USDC",
+      availableLiquidityUsd: 2_100_000,
+      currentApr: 5.9,
+      predictedApr: 6.1,
+      utilization: 78,
+      liquidityScore: 84,
+      riskScore: 18,
+      health: "Stable",
+      currentMonthlyCostUsd: 24.58,
+      predictedMonthlyCostUsd: 25.42
+    }
   ],
   forecasts: [
-    { timestamp: "00:00", aave: 6.2, morpho: 8.9, compound: 5.4, spark: 7.1 },
-    { timestamp: "04:00", aave: 6.6, morpho: 9.4, compound: 5.6, spark: 7.2 },
-    { timestamp: "08:00", aave: 7.1, morpho: 10.1, compound: 5.9, spark: 7.5 },
-    { timestamp: "12:00", aave: 7.5, morpho: 10.7, compound: 6.2, spark: 7.9 },
-    { timestamp: "16:00", aave: 7.8, morpho: 11.6, compound: 6.8, spark: 8.3 },
-    { timestamp: "20:00", aave: 7.4, morpho: 11.1, compound: 6.5, spark: 8.0 }
+    { timestamp: "00:00", aave: 6.4, morpho: 5.1, compound: 5.7, spark: 5.9 },
+    { timestamp: "04:00", aave: 6.6, morpho: 5.8, compound: 5.8, spark: 6.0 },
+    { timestamp: "08:00", aave: 6.8, morpho: 6.3, compound: 5.8, spark: 6.0 },
+    { timestamp: "12:00", aave: 7.0, morpho: 6.7, compound: 5.9, spark: 6.1 },
+    { timestamp: "16:00", aave: 7.1, morpho: 6.9, compound: 5.9, spark: 6.1 },
+    { timestamp: "20:00", aave: 7.0, morpho: 6.8, compound: 6.0, spark: 6.2 }
   ],
   riskVectors: [
-    { protocol: "Aave", smartContractRisk: 88, auditCoverage: 94, liquidityHealth: 93, governanceDecentralization: 91, oracleDependency: 72, badDebtRisk: 90, exploitProbability: 8, tvlTrend: 84 },
-    { protocol: "Morpho", smartContractRisk: 81, auditCoverage: 87, liquidityHealth: 86, governanceDecentralization: 79, oracleDependency: 68, badDebtRisk: 83, exploitProbability: 16, tvlTrend: 90 },
-    { protocol: "Compound", smartContractRisk: 79, auditCoverage: 91, liquidityHealth: 78, governanceDecentralization: 89, oracleDependency: 74, badDebtRisk: 76, exploitProbability: 19, tvlTrend: 66 },
-    { protocol: "Spark", smartContractRisk: 84, auditCoverage: 88, liquidityHealth: 82, governanceDecentralization: 72, oracleDependency: 65, badDebtRisk: 88, exploitProbability: 12, tvlTrend: 77 },
-    { protocol: "Pendle", smartContractRisk: 71, auditCoverage: 80, liquidityHealth: 74, governanceDecentralization: 69, oracleDependency: 62, badDebtRisk: 70, exploitProbability: 24, tvlTrend: 83 },
-    { protocol: "Ethena", smartContractRisk: 68, auditCoverage: 78, liquidityHealth: 75, governanceDecentralization: 61, oracleDependency: 57, badDebtRisk: 72, exploitProbability: 29, tvlTrend: 88 },
-    { protocol: "MakerDAO", smartContractRisk: 90, auditCoverage: 96, liquidityHealth: 88, governanceDecentralization: 83, oracleDependency: 76, badDebtRisk: 92, exploitProbability: 6, tvlTrend: 71 }
+    { protocol: "Aave", smartContractRisk: 86, auditCoverage: 94, liquidityHealth: 88, governanceDecentralization: 89, oracleDependency: 72, badDebtRisk: 84, exploitProbability: 8, tvlTrend: 91 },
+    { protocol: "Compound", smartContractRisk: 82, auditCoverage: 92, liquidityHealth: 91, governanceDecentralization: 87, oracleDependency: 69, badDebtRisk: 88, exploitProbability: 7, tvlTrend: 84 },
+    { protocol: "Morpho", smartContractRisk: 78, auditCoverage: 86, liquidityHealth: 62, governanceDecentralization: 80, oracleDependency: 67, badDebtRisk: 71, exploitProbability: 15, tvlTrend: 79 },
+    { protocol: "Spark", smartContractRisk: 81, auditCoverage: 90, liquidityHealth: 84, governanceDecentralization: 73, oracleDependency: 64, badDebtRisk: 82, exploitProbability: 10, tvlTrend: 80 }
   ],
   agentLogs: [
-    { id: "log-1", timestamp: "13:04:11", agent: "Yield Prediction Agent", level: "info", message: "Base Morpho USDC utilization projected to rise 11.4% over the next 6h.", chain: "Base" },
-    { id: "log-2", timestamp: "13:04:19", agent: "Sentiment Agent", level: "warn", message: "Governance chatter detected around Pendle PT curve compression.", chain: "Ethereum" },
-    { id: "log-3", timestamp: "13:04:24", agent: "Risk Analysis Agent", level: "info", message: "MakerDAO DAI stability buffer remains above internal safety threshold.", chain: "Polygon" },
-    { id: "log-4", timestamp: "13:04:36", agent: "Execution Agent", level: "critical", message: "Simulated bridge route switched from canonical to Hyperlane fallback for lower slippage.", chain: "Arbitrum" },
-    { id: "log-5", timestamp: "13:04:42", agent: "Explainability Agent", level: "info", message: "Generated user-facing explanation for 520k USDC Base rotation.", chain: "Base" }
+    { id: "log-1", timestamp: "14:12:11", agent: "RateDataAgent", level: "info", message: "Collected mock USDC borrow APRs across Aave, Compound, Morpho, and Spark.", chain: "Ethereum" },
+    { id: "log-2", timestamp: "14:12:17", agent: "PredictionAgent", level: "warn", message: "Morpho utilization above 90%; predicted borrow APR increased by 1.8 percentage points.", chain: "Base" },
+    { id: "log-3", timestamp: "14:12:24", agent: "DecisionAgent", level: "info", message: "Compound selected as best risk-adjusted venue after APR, liquidity, and utilization comparison.", chain: "Ethereum" },
+    { id: "log-4", timestamp: "14:12:31", agent: "ExecutionAgent", level: "critical", message: "Prepared simulated migration plan with fake receipt 0xFAKE_AGENT_FORGE_2026_DEFI_OPTIMIZER.", chain: "Ethereum" }
   ],
   moves: [
     {
       id: "move-1",
-      timestamp: "13:05:02",
-      fromProtocol: "Compound",
-      toProtocol: "Morpho",
-      fromChain: "Arbitrum",
-      toChain: "Base",
+      timestamp: "14:12:32",
+      fromProtocol: "Aave",
+      toProtocol: "Compound",
+      fromChain: "Ethereum",
+      toChain: "Ethereum",
       asset: "USDC",
-      amountUsd: 520000,
-      expectedGainBps: 142,
-      confidence: 0.93,
-      reason: "Predicted utilization spike and lower gas-adjusted execution cost on Base.",
-      status: "Executing"
+      amountUsd: 5000,
+      expectedMonthlySavingsUsd: 3.0,
+      confidence: 0.88,
+      reason: "Compound has the best risk-adjusted predicted borrow APR. Morpho is cheaper right now, but 93% utilization creates rate volatility risk.",
+      status: "Ready",
+      simulatedTxHash: "0xFAKE_AGENT_FORGE_2026_DEFI_OPTIMIZER",
+      steps: [
+        "Repay existing USDC debt on Aave.",
+        "Withdraw ETH collateral from Aave.",
+        "Deposit ETH collateral into Compound.",
+        "Borrow 5,000 USDC from Compound."
+      ]
     },
     {
       id: "move-2",
-      timestamp: "13:07:14",
-      fromProtocol: "Pendle",
-      toProtocol: "Aave",
+      timestamp: "14:13:08",
+      fromProtocol: "Aave",
+      toProtocol: "Spark",
       fromChain: "Ethereum",
       toChain: "Ethereum",
-      asset: "sUSDe",
-      amountUsd: 310000,
-      expectedGainBps: 88,
-      confidence: 0.81,
-      reason: "Exploit probability drifted above watch threshold after sentiment anomaly.",
-      status: "Simulating"
-    },
-    {
-      id: "move-3",
-      timestamp: "13:11:30",
-      fromProtocol: "Spark",
-      toProtocol: "MakerDAO",
-      fromChain: "Optimism",
-      toChain: "Polygon",
-      asset: "DAI",
-      amountUsd: 185000,
-      expectedGainBps: 47,
-      confidence: 0.74,
-      reason: "Gas-normalized yield curve indicates safer reserve parking ahead of CPI event.",
-      status: "Queued"
+      asset: "USDC",
+      amountUsd: 5000,
+      expectedMonthlySavingsUsd: 1.25,
+      confidence: 0.73,
+      reason: "Spark is stable, but still slightly more expensive than Compound on a predicted basis.",
+      status: "Simulating",
+      simulatedTxHash: "0xFAKE_AGENT_FORGE_2026_SPARK_FALLBACK",
+      steps: [
+        "Repay USDC debt on Aave.",
+        "Move ETH collateral to Spark.",
+        "Open replacement USDC borrow on Spark."
+      ]
     }
   ],
   wallets: [
@@ -216,9 +247,9 @@ export const dashboardMock: DashboardPayload = {
       chain: "Ethereum",
       walletProvider: "MetaMask",
       balances: [
-        { symbol: "USDC", amount: 4100000, usdValue: 4100000 },
-        { symbol: "DAI", amount: 1210000, usdValue: 1210000 },
-        { symbol: "ETH", amount: 402, usdValue: 1390000 }
+        { symbol: "ETH Collateral", amount: 4.2, usdValue: 14700 },
+        { symbol: "USDC Debt", amount: 5000, usdValue: 5000 },
+        { symbol: "Health Factor", amount: 1.86, usdValue: 1.86 }
       ]
     },
     {
@@ -226,17 +257,8 @@ export const dashboardMock: DashboardPayload = {
       chain: "Base",
       walletProvider: "WalletConnect",
       balances: [
-        { symbol: "USDC", amount: 2380000, usdValue: 2380000 },
-        { symbol: "sUSDe", amount: 980000, usdValue: 980000 }
-      ]
-    },
-    {
-      address: "8i6h...q1Lm",
-      chain: "Solana",
-      walletProvider: "Coinbase Wallet",
-      balances: [
-        { symbol: "USDC", amount: 900000, usdValue: 900000 },
-        { symbol: "SOL", amount: 5200, usdValue: 910000 }
+        { symbol: "USDC Buffer", amount: 2400, usdValue: 2400 },
+        { symbol: "cbETH Collateral", amount: 1.1, usdValue: 3850 }
       ]
     }
   ]

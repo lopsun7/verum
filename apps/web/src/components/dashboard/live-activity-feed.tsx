@@ -13,6 +13,10 @@ export function LiveActivityFeed({ initialLogs }: { initialLogs: AgentLog[] }) {
   const [logs, setLogs] = useState(initialLogs);
 
   useEffect(() => {
+    setLogs(initialLogs);
+  }, [initialLogs]);
+
+  useEffect(() => {
     if (!configuredWsUrl) {
       return;
     }

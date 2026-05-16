@@ -5,18 +5,18 @@ import { AppShell } from "@/components/layout/app-shell";
 import { GlassCard } from "@/components/ui/card";
 
 export default function RiskTerminalPage() {
-  const focus = dashboardMock.riskVectors[1];
+  const focus = dashboardMock.riskVectors[2];
 
   return (
     <AppShell
       currentPath="/risk-terminal"
       title="Protocol Risk Terminal"
-      subtitle="Track exploit probability, audit coverage, TVL resilience, governance risk, oracle concentration, and bad debt signals before exposure turns toxic."
+      subtitle="Track liquidity stability, utilization pressure, contract safety, and rate volatility before refinancing a borrow position into a venue that only looks cheap at first glance."
     >
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <GlassCard className="rounded-[30px]">
           <p className="text-xs uppercase tracking-[0.26em] text-white/42">Risk Radar</p>
-          <h2 className="mt-2 text-2xl font-semibold">{focus.protocol} composite posture</h2>
+          <h2 className="mt-2 text-2xl font-semibold">{focus.protocol} borrow stability posture</h2>
           <RiskRadarChart vector={focus} />
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -35,7 +35,7 @@ export default function RiskTerminalPage() {
 
         <GlassCard className="rounded-[30px]">
           <p className="text-xs uppercase tracking-[0.26em] text-white/42">Risk Matrix</p>
-          <h2 className="mt-2 text-2xl font-semibold">Cross-protocol safety heatmap</h2>
+          <h2 className="mt-2 text-2xl font-semibold">Cross-protocol borrower safety heatmap</h2>
           <div className="mt-6 overflow-hidden rounded-[24px] border border-white/8">
             <div className="grid grid-cols-7 bg-white/6 text-xs uppercase tracking-[0.2em] text-white/45">
               {["Protocol", "Contract", "Audit", "Liquidity", "Governance", "Oracle", "Bad Debt"].map((header) => (
@@ -72,8 +72,8 @@ export default function RiskTerminalPage() {
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             {[
               ["Emergency Exit Threshold", "25% exploit probability"],
-              ["Oracle Dependency Guardrail", "Max 75 / 100"],
-              ["Governance Alert Trigger", "Below 68 / 100"]
+              ["Liquidity Guardrail", "Below 70 / 100"],
+              ["Utilization Alert Trigger", "Above 90%"]
             ].map(([label, value]) => (
               <div key={label} className="rounded-[24px] border border-white/8 bg-slate-950/42 p-4">
                 <p className="text-xs text-white/42">{label}</p>

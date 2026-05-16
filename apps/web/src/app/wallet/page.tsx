@@ -9,7 +9,7 @@ export default function WalletPage() {
     <AppShell
       currentPath="/wallet"
       title="Wallet Integration"
-      subtitle="Connect MetaMask, WalletConnect, and Coinbase Wallet across supported chains with live balances, account switching, and treasury routing controls."
+      subtitle="Inspect the borrower wallet, collateral balances, and debt context used to simulate a refinance from one lending protocol to another."
     >
       <section className="grid gap-4 xl:grid-cols-3">
         {dashboardMock.wallets.map((wallet) => (
@@ -42,7 +42,7 @@ export default function WalletPage() {
       <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]">
         <GlassCard className="rounded-[30px]">
           <p className="text-xs uppercase tracking-[0.26em] text-white/42">Supported Providers</p>
-          <h2 className="mt-2 text-2xl font-semibold">Multichain wallet stack</h2>
+          <h2 className="mt-2 text-2xl font-semibold">Borrower wallet stack</h2>
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             {["MetaMask", "WalletConnect", "Coinbase Wallet"].map((provider) => (
               <div key={provider} className="rounded-[24px] border border-white/8 bg-slate-950/48 px-4 py-5 text-center">
@@ -53,14 +53,14 @@ export default function WalletPage() {
         </GlassCard>
 
         <GlassCard className="rounded-[30px]">
-          <p className="text-xs uppercase tracking-[0.26em] text-white/42">Treasury Controls</p>
-          <h2 className="mt-2 text-2xl font-semibold">Execution permissions</h2>
+          <p className="text-xs uppercase tracking-[0.26em] text-white/42">Borrow Migration Controls</p>
+          <h2 className="mt-2 text-2xl font-semibold">Simulation permissions</h2>
           <div className="mt-6 space-y-3">
             {[
-              "Account switching with per-chain treasury intents",
-              "Allowance staging for swap, bridge, and lending adapters",
-              "Simulation-first confirmations for autonomous moves",
-              "Emergency safe-mode withdrawal approvals"
+              "Account switching with per-wallet borrow position context",
+              "Collateral portability checks before refinancing",
+              "Simulation-first confirmations for debt migration steps",
+              "Borrow health-factor validation before execution"
             ].map((item) => (
               <div key={item} className="rounded-[24px] border border-white/8 bg-slate-950/48 px-4 py-4 text-sm leading-6 text-white/68">
                 {item}

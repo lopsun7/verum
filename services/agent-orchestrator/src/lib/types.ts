@@ -1,4 +1,4 @@
-import type { AllocationMove, DashboardPayload, ProtocolAllocation, RiskVector } from "@aegis/shared";
+import type { AllocationMove, DashboardPayload, ProtocolAllocation } from "@aegis/shared";
 
 export interface MarketIntel {
   protocolMentions: string[];
@@ -11,37 +11,45 @@ export interface MarketIntel {
   }>;
 }
 
-export interface YieldPredictionResult {
+export interface RateDataResult {
+  pools: ProtocolAllocation[];
+  source: "mock-json";
+}
+
+export interface PredictionResult {
   protocol: ProtocolAllocation["protocol"];
   chain: ProtocolAllocation["chain"];
-  predictedApy: number;
-  confidence: number;
+  currentApr: number;
+  predictedApr: number;
+  utilization: number;
+  liquidityScore: number;
+  riskPenalty: number;
   rationale: string;
 }
 
-export interface RiskAnalysisResult {
-  protocol: RiskVector["protocol"];
-  healthScore: number;
-  exploitProbability: number;
-  anomaly: boolean;
-  rationale: string;
+export interface RecommendationDecision {
+  fromProtocol: ProtocolAllocation["protocol"];
+  toProtocol: ProtocolAllocation["protocol"];
+  fromChain: ProtocolAllocation["chain"];
+  toChain: ProtocolAllocation["chain"];
+  amountUsd: number;
+  expectedMonthlySavingsUsd: number;
+  confidence: number;
+  reason: string;
 }
 
 export interface ExecutionPlan {
   fallbackMode: "api" | "actionbook";
-  route: string;
-  bridge: string;
-  batchSize: number;
-  mevPenaltyBps: number;
+  steps: string[];
+  simulatedTxHash: string;
+  recommendedWindow: string;
 }
 
 export interface AutonomousCycleResult {
   snapshot: DashboardPayload["metric"];
-  intel: MarketIntel;
-  predictions: YieldPredictionResult[];
-  risks: RiskAnalysisResult[];
+  rateData: RateDataResult;
+  predictions: PredictionResult[];
+  decision: RecommendationDecision;
   execution: ExecutionPlan;
   moves: AllocationMove[];
-  explanation: string;
 }
-

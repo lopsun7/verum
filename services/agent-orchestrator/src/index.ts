@@ -4,11 +4,10 @@ import Fastify from "fastify";
 
 import { dashboardMock } from "@aegis/shared";
 
+import { DecisionAgent } from "./agents/decision-agent.js";
 import { ExecutionAgent } from "./agents/execution-agent.js";
-import { ExplainabilityAgent } from "./agents/explainability-agent.js";
-import { RiskAnalysisAgent } from "./agents/risk-analysis-agent.js";
-import { SentimentAgent } from "./agents/sentiment-agent.js";
-import { YieldPredictionAgent } from "./agents/yield-prediction-agent.js";
+import { PredictionAgent } from "./agents/prediction-agent.js";
+import { RateDataAgent } from "./agents/rate-data-agent.js";
 import { AgentFieldClient } from "./integrations/agentfield.js";
 import { BrightDataClient } from "./integrations/brightdata.js";
 import { QoderClient } from "./integrations/qoder.js";
@@ -21,56 +20,48 @@ const agentField = new AgentFieldClient();
 const brightData = new BrightDataClient();
 const qoder = new QoderClient();
 
-const yieldAgent = new YieldPredictionAgent();
-const riskAgent = new RiskAnalysisAgent();
-const sentimentAgent = new SentimentAgent(brightData);
+const rateDataAgent = new RateDataAgent();
+const predictionAgent = new PredictionAgent();
+const decisionAgent = new DecisionAgent();
 const executionAgent = new ExecutionAgent();
-const explainabilityAgent = new ExplainabilityAgent();
 
 async function runAutonomousCycle(): Promise<AutonomousCycleResult> {
-  const [predictions, risks, intel, execution] = await Promise.all([
-    yieldAgent.run(dashboardMock),
-    riskAgent.run(dashboardMock),
-    sentimentAgent.run(),
-    executionAgent.run(dashboardMock.moves[0]!)
-  ]);
+  const rateData = await rateDataAgent.run();
+  const predictions = await predictionAgent.run(rateData.pools);
+  const decision = await decisionAgent.run(predictions, dashboardMock.metric.activeBorrowUsd);
+  const execution = await executionAgent.run(decision);
 
-  await agentField.dispatchTask("yield-prediction-agent", {
-    marketState: dashboardMock.metric
+  await agentField.dispatchTask("rate-data-agent", {
+    pools: rateData.pools.length,
+    source: rateData.source
   });
-  await agentField.shareMemory("treasury-state", {
-    protectedCapital: dashboardMock.metric.protectedCapital,
+  await agentField.shareMemory("borrow-state", {
+    activeBorrowUsd: dashboardMock.metric.activeBorrowUsd,
     aiConfidence: dashboardMock.metric.aiConfidence,
-    preferredChain: "Base"
+    recommendedVenue: decision.toProtocol
   });
   await qoder.syncRepoWiki();
 
-  const explanation = await explainabilityAgent.run(dashboardMock.moves[0]!);
-
   return {
     snapshot: dashboardMock.metric,
-    intel,
+    rateData,
     predictions,
-    risks,
+    decision,
     execution,
-    moves: dashboardMock.moves,
-    explanation
+    moves: dashboardMock.moves
   };
 }
 
 app.get("/health", async () => ({
   status: "ok",
-  service: "aegis-agents"
+  service: "verum-agents"
 }));
 
 app.get("/api/integrations", async () => ({
   agentField: Boolean(process.env.AGENTFIELD_API_KEY),
   actionbook: Boolean(process.env.ACTIONBOOK_API_KEY),
   brightData: brightData.getSourceSummary(),
-  qwen: Boolean(process.env.QWEN_API_KEY),
-  qoder: Boolean(process.env.QODER_API_KEY),
-  zeabur: Boolean(process.env.ZEABUR_TOKEN),
-  glm: Boolean(process.env.ZAI_API_KEY)
+  qoder: Boolean(process.env.QODER_API_KEY)
 }));
 
 app.post("/api/agents/run-cycle", async () => runAutonomousCycle());

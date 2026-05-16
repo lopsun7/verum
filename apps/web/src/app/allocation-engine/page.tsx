@@ -2,40 +2,44 @@ import { dashboardMock } from "@/lib/demo-data";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { GlassCard } from "@/components/ui/card";
-import { formatCompactCurrency, formatConfidence, formatPercent } from "@/lib/utils";
+import { formatCompactCurrency, formatConfidence, formatCurrency, formatPercent } from "@/lib/utils";
 
 export default function AllocationEnginePage() {
   return (
     <AppShell
       currentPath="/allocation-engine"
-      title="AI Allocation Engine"
-      subtitle="Inspect how yield forecasts, risk gating, utilization signals, and execution cost models drive every autonomous treasury move."
+      title="Borrow Decision Engine"
+      subtitle="Inspect how current APR, predicted APR, utilization, liquidity, and risk penalties drive each refinance recommendation."
     >
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <GlassCard className="rounded-[30px]">
-          <p className="text-xs uppercase tracking-[0.26em] text-white/42">Current Positions</p>
-          <h2 className="mt-2 text-2xl font-semibold">Capital deployment map</h2>
+          <p className="text-xs uppercase tracking-[0.26em] text-white/42">Current Borrow Markets</p>
+          <h2 className="mt-2 text-2xl font-semibold">Borrow venue comparison</h2>
           <div className="mt-6 space-y-4">
             {dashboardMock.allocations.map((allocation) => (
               <div key={`${allocation.protocol}-${allocation.chain}`} className="rounded-[24px] border border-white/8 bg-slate-950/48 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-lg font-medium">{allocation.protocol}</p>
-                    <p className="text-xs text-white/45">{allocation.chain} · {allocation.asset}</p>
+                    <p className="text-xs text-white/45">{allocation.chain} · {allocation.asset} {allocation.isCurrentPosition ? "· active debt" : ""}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold">{formatCompactCurrency(allocation.valueUsd)}</p>
+                    <p className="text-lg font-semibold">{formatCompactCurrency(allocation.availableLiquidityUsd)}</p>
                     <p className="text-xs text-white/45">Risk {allocation.riskScore}</p>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <div className="mt-4 grid grid-cols-4 gap-3 text-sm">
                   <div>
-                    <p className="text-white/38">Current</p>
-                    <p className="mt-1 font-medium">{formatPercent(allocation.currentApy)}</p>
+                    <p className="text-white/38">Current APR</p>
+                    <p className="mt-1 font-medium">{formatPercent(allocation.currentApr)}</p>
                   </div>
                   <div>
-                    <p className="text-white/38">Predicted</p>
-                    <p className="mt-1 font-medium text-[#ffbe7e]">{formatPercent(allocation.predictedApy)}</p>
+                    <p className="text-white/38">Predicted APR</p>
+                    <p className="mt-1 font-medium text-[#ffbe7e]">{formatPercent(allocation.predictedApr)}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/38">Utilization</p>
+                    <p className="mt-1 font-medium">{allocation.utilization}%</p>
                   </div>
                   <div>
                     <p className="text-white/38">Health</p>
@@ -49,8 +53,8 @@ export default function AllocationEnginePage() {
 
         <div className="space-y-4">
           <GlassCard className="rounded-[30px]">
-            <p className="text-xs uppercase tracking-[0.26em] text-white/42">Recommended Reallocation</p>
-            <h2 className="mt-2 text-2xl font-semibold">Autonomous move queue</h2>
+            <p className="text-xs uppercase tracking-[0.26em] text-white/42">DecisionAgent Output</p>
+            <h2 className="mt-2 text-2xl font-semibold">Recommended migration queue</h2>
             <div className="mt-6 space-y-4">
               {dashboardMock.moves.map((move) => (
                 <div key={move.id} className="rounded-[24px] border border-[#ff9340]/16 bg-[#ff9340]/7 p-5">
@@ -72,8 +76,8 @@ export default function AllocationEnginePage() {
                       <p className="mt-1 font-medium">{formatCompactCurrency(move.amountUsd)}</p>
                     </div>
                     <div className="rounded-2xl border border-white/8 bg-slate-950/40 p-3">
-                      <p className="text-white/38">Expected Gain</p>
-                      <p className="mt-1 font-medium text-emerald-300">+{move.expectedGainBps} bps</p>
+                      <p className="text-white/38">Expected Savings</p>
+                      <p className="mt-1 font-medium text-emerald-300">{formatCurrency(move.expectedMonthlySavingsUsd)}/mo</p>
                     </div>
                     <div className="rounded-2xl border border-white/8 bg-slate-950/40 p-3">
                       <p className="text-white/38">Confidence</p>
@@ -87,16 +91,16 @@ export default function AllocationEnginePage() {
 
           <GlassCard className="rounded-[30px]">
             <p className="text-xs uppercase tracking-[0.26em] text-white/42">Explainability Layer</p>
-            <h2 className="mt-2 text-2xl font-semibold">Why capital moved</h2>
+            <h2 className="mt-2 text-2xl font-semibold">Why the borrower should move</h2>
             <div className="mt-5 space-y-3 text-sm leading-7 text-white/68">
               <p>
-                Qwen risk reasoning weighted Morpho Base higher because projected utilization increases outpaced gas-adjusted entry costs while exploit probability remained below the emergency threshold.
+                RateDataAgent collects the live pool snapshot first: Aave 6.4%, Compound 5.7%, Morpho 5.1%, Spark 5.9% for USDC borrowing.
               </p>
               <p>
-                The stablecoin rotation policy maintained USDC dominance because cross-venue liquidity depth exceeded DAI and USDT, and sUSDe carry was discounted for sentiment volatility.
+                PredictionAgent then applies the short-term rules. Morpho looks cheapest now, but 93% utilization adds a 1.8 percentage point lift and its weaker liquidity raises the volatility penalty.
               </p>
               <p>
-                MEV-aware routing switched to a safer bridge path when expected slippage on the primary route exceeded the policy envelope by 21 basis points.
+                DecisionAgent chooses Compound because it has the lowest risk-adjusted predicted borrow APR, and ExecutionAgent prepares the refinance plan without touching mainnet funds.
               </p>
             </div>
           </GlassCard>

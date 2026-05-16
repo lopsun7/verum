@@ -8,11 +8,9 @@ export class ActionbookClient {
   async buildFallbackPlan(move: AllocationMove): Promise<ExecutionPlan> {
     return {
       fallbackMode: this.apiKey ? "actionbook" : "api",
-      route: `${move.fromChain} -> ${move.toChain}`,
-      bridge: "Across + 1inch protected route",
-      batchSize: 2,
-      mevPenaltyBps: 11
+      recommendedWindow: "next-30-min",
+      simulatedTxHash: move.simulatedTxHash,
+      steps: move.steps
     };
   }
 }
-
