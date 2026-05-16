@@ -17,6 +17,18 @@ import type {
 import { dashboardMock } from "@/lib/demo-data";
 
 type ScenarioId = "normal" | "morpho-spike" | "liquidity-crunch" | "safe-market";
+type DecisionMode = "lowest-predicted" | "lowest-current" | "stable-liquidity";
+
+type PoolOverride = Partial<
+  Pick<ProtocolAllocation, "currentApr" | "utilization" | "liquidityScore" | "riskScore" | "availableLiquidityUsd">
+>;
+
+interface AgentConstraints {
+  decisionMode: DecisionMode;
+  maxUtilization: number;
+  minLiquidityScore: number;
+  maxRiskScore: number;
+}
 
 interface SimulationContextValue {
   dashboard: DashboardPayload;
@@ -26,9 +38,15 @@ interface SimulationContextValue {
   borrowAmount: number;
   currentProtocol: SupportedProtocol;
   isExecuting: boolean;
+  constraints: AgentConstraints;
   setScenario: (scenario: ScenarioId) => void;
   setBorrowAmount: (amount: number) => void;
   setAutoMode: (enabled: boolean) => void;
+  setCurrentProtocol: (protocol: SupportedProtocol) => void;
+  updatePool: (protocol: SupportedProtocol, patch: PoolOverride) => void;
+  randomizeMarket: () => void;
+  resetMarket: () => void;
+  updateConstraints: (patch: Partial<AgentConstraints>) => void;
   manualTick: () => void;
   optimizeBorrow: () => void;
 }
@@ -80,7 +98,8 @@ function scenarioAdjustedPools(
   scenarioId: ScenarioId,
   borrowAmount: number,
   currentProtocol: SupportedProtocol,
-  blockNumber: number
+  blockNumber: number,
+  poolOverrides: Partial<Record<SupportedProtocol, PoolOverride>>
 ): ProtocolAllocation[] {
   return basePools.map((pool) => {
     let utilization = pool.utilization;
@@ -116,6 +135,15 @@ function scenarioAdjustedPools(
     currentApr = Math.max(4.4, currentApr + wave * 0.08);
     availableLiquidityUsd = Math.max(400000, availableLiquidityUsd + wave * 40000);
 
+    const override = poolOverrides[pool.protocol];
+    if (override) {
+      currentApr = override.currentApr ?? currentApr;
+      utilization = override.utilization ?? utilization;
+      liquidityScore = override.liquidityScore ?? liquidityScore;
+      riskScore = override.riskScore ?? riskScore;
+      availableLiquidityUsd = override.availableLiquidityUsd ?? availableLiquidityUsd;
+    }
+
     const predictedApr = computePredictedApr(currentApr, utilization, liquidityScore);
     const currentMonthlyCostUsd = Number(((borrowAmount * (currentApr / 100)) / 12).toFixed(2));
     const predictedMonthlyCostUsd = Number(((borrowAmount * (predictedApr / 100)) / 12).toFixed(2));
@@ -136,11 +164,33 @@ function scenarioAdjustedPools(
   });
 }
 
-function buildRecommendation(pools: ProtocolAllocation[], borrowAmount: number, currentProtocol: SupportedProtocol): AllocationMove {
+function buildRecommendation(
+  pools: ProtocolAllocation[],
+  borrowAmount: number,
+  currentProtocol: SupportedProtocol,
+  constraints: AgentConstraints
+): AllocationMove {
   const currentPool = pools.find((pool) => pool.protocol === currentProtocol) ?? pools[0]!;
-  const ranked = [...pools].sort((left, right) => {
-    const leftScore = left.predictedApr + (100 - left.liquidityScore) / 120 + left.riskScore / 100;
-    const rightScore = right.predictedApr + (100 - right.liquidityScore) / 120 + right.riskScore / 100;
+  const eligiblePools = pools.filter(
+    (pool) =>
+      pool.utilization <= constraints.maxUtilization &&
+      pool.liquidityScore >= constraints.minLiquidityScore &&
+      pool.riskScore <= constraints.maxRiskScore
+  );
+  const candidates = eligiblePools.length ? eligiblePools : pools;
+  const ranked = [...candidates].sort((left, right) => {
+    const leftScore =
+      constraints.decisionMode === "lowest-current"
+        ? left.currentApr + left.riskScore / 120
+        : constraints.decisionMode === "stable-liquidity"
+          ? left.predictedApr + (100 - left.liquidityScore) / 60 + left.riskScore / 100
+          : left.predictedApr + (100 - left.liquidityScore) / 120 + left.riskScore / 100;
+    const rightScore =
+      constraints.decisionMode === "lowest-current"
+        ? right.currentApr + right.riskScore / 120
+        : constraints.decisionMode === "stable-liquidity"
+          ? right.predictedApr + (100 - right.liquidityScore) / 60 + right.riskScore / 100
+          : right.predictedApr + (100 - right.liquidityScore) / 120 + right.riskScore / 100;
 
     return leftScore - rightScore;
   });
@@ -162,8 +212,8 @@ function buildRecommendation(pools: ProtocolAllocation[], borrowAmount: number, 
     confidence: bestPool.protocol === "Compound" ? 0.88 : bestPool.protocol === "Spark" ? 0.79 : 0.72,
     reason:
       bestPool.protocol === "Morpho" && bestPool.utilization > 90
-        ? "Morpho remains cheap right now, but the utilization spike keeps it unstable for a borrower who wants rate predictability."
-        : `${bestPool.protocol} has the best risk-adjusted predicted borrow rate. Morpho is cheaper right now, but high utilization creates rate volatility risk.`,
+        ? `Morpho remains cheap right now, but the utilization spike breaks the current safety constraints for a stable borrower flow.`
+        : `${bestPool.protocol} best matches the active constraints: mode=${constraints.decisionMode}, max util ${constraints.maxUtilization}%, min liquidity ${constraints.minLiquidityScore}.`,
     status: "Ready",
     simulatedTxHash: "0xFAKE_AGENT_FORGE_2026_DEFI_OPTIMIZER",
     steps: [
@@ -249,7 +299,12 @@ function buildWallets(borrowAmount: number, currentProtocol: SupportedProtocol):
   });
 }
 
-function buildLogs(recommendation: AllocationMove, scenarioId: ScenarioId, blockNumber: number): AgentLog[] {
+function buildLogs(
+  recommendation: AllocationMove,
+  scenarioId: ScenarioId,
+  blockNumber: number,
+  constraints: AgentConstraints
+): AgentLog[] {
   return [
     {
       id: `log-rate-${blockNumber}`,
@@ -264,7 +319,7 @@ function buildLogs(recommendation: AllocationMove, scenarioId: ScenarioId, block
       timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
       agent: "PredictionAgent",
       level: recommendation.toProtocol === "Morpho" ? "warn" : "info",
-      message: "Applied utilization thresholds and liquidity penalties to predict short-term borrow APR movement.",
+      message: `Applied utilization thresholds and liquidity penalties with constraint mode "${constraints.decisionMode}".`,
       chain: recommendation.toChain
     },
     {
@@ -272,7 +327,7 @@ function buildLogs(recommendation: AllocationMove, scenarioId: ScenarioId, block
       timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
       agent: "DecisionAgent",
       level: "info",
-      message: `Recommended moving debt from ${recommendation.fromProtocol} to ${recommendation.toProtocol}.`,
+      message: `Recommended moving debt from ${recommendation.fromProtocol} to ${recommendation.toProtocol} under the current guardrails.`,
       chain: recommendation.toChain
     },
     {
@@ -286,9 +341,16 @@ function buildLogs(recommendation: AllocationMove, scenarioId: ScenarioId, block
   ];
 }
 
-function buildDashboard(scenarioId: ScenarioId, borrowAmount: number, currentProtocol: SupportedProtocol, blockNumber: number): BuildResult {
-  const allocations = scenarioAdjustedPools(scenarioId, borrowAmount, currentProtocol, blockNumber);
-  const recommendation = buildRecommendation(allocations, borrowAmount, currentProtocol);
+function buildDashboard(
+  scenarioId: ScenarioId,
+  borrowAmount: number,
+  currentProtocol: SupportedProtocol,
+  blockNumber: number,
+  poolOverrides: Partial<Record<SupportedProtocol, PoolOverride>>,
+  constraints: AgentConstraints
+): BuildResult {
+  const allocations = scenarioAdjustedPools(scenarioId, borrowAmount, currentProtocol, blockNumber, poolOverrides);
+  const recommendation = buildRecommendation(allocations, borrowAmount, currentProtocol, constraints);
   const dashboard: DashboardPayload = {
     metric: {
       activeBorrowUsd: borrowAmount,
@@ -302,7 +364,7 @@ function buildDashboard(scenarioId: ScenarioId, borrowAmount: number, currentPro
     allocations,
     forecasts: buildForecasts(allocations),
     riskVectors: buildRiskVectors(allocations),
-    agentLogs: buildLogs(recommendation, scenarioId, blockNumber),
+    agentLogs: buildLogs(recommendation, scenarioId, blockNumber, constraints),
     moves: [recommendation],
     wallets: buildWallets(borrowAmount, currentProtocol)
   };
@@ -320,11 +382,18 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   const [borrowAmount, setBorrowAmountState] = useState(dashboardMock.metric.activeBorrowUsd);
   const [currentProtocol, setCurrentProtocol] = useState<SupportedProtocol>("Aave");
   const [isExecuting, setIsExecuting] = useState(false);
+  const [poolOverrides, setPoolOverrides] = useState<Partial<Record<SupportedProtocol, PoolOverride>>>({});
+  const [constraints, setConstraints] = useState<AgentConstraints>({
+    decisionMode: "lowest-predicted",
+    maxUtilization: 92,
+    minLiquidityScore: 60,
+    maxRiskScore: 35
+  });
   const timeoutRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
   const { dashboard, recommendation } = useMemo(
-    () => buildDashboard(scenarioId, borrowAmount, currentProtocol, blockNumber),
-    [scenarioId, borrowAmount, currentProtocol, blockNumber]
+    () => buildDashboard(scenarioId, borrowAmount, currentProtocol, blockNumber, poolOverrides, constraints),
+    [scenarioId, borrowAmount, currentProtocol, blockNumber, poolOverrides, constraints]
   );
 
   useEffect(() => {
@@ -346,6 +415,49 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const manualTick = () => {
+    setBlockNumber((current) => current + 1);
+  };
+
+  const updatePool = (protocol: SupportedProtocol, patch: PoolOverride) => {
+    setPoolOverrides((current) => ({
+      ...current,
+      [protocol]: {
+        ...current[protocol],
+        ...patch
+      }
+    }));
+    setBlockNumber((current) => current + 1);
+  };
+
+  const randomizeMarket = () => {
+    const nextOverrides = Object.fromEntries(
+      basePools.map((pool) => [
+        pool.protocol,
+        {
+          currentApr: Number(randomBetween(4.7, 6.9).toFixed(2)),
+          utilization: Math.round(randomBetween(68, 97)),
+          liquidityScore: Math.round(randomBetween(52, 95)),
+          riskScore: Math.round(randomBetween(12, 38)),
+          availableLiquidityUsd: Math.round(randomBetween(700000, 3800000))
+        }
+      ])
+    ) as Partial<Record<SupportedProtocol, PoolOverride>>;
+
+    setPoolOverrides(nextOverrides);
+    setBlockNumber((current) => current + 1);
+  };
+
+  const resetMarket = () => {
+    setPoolOverrides({});
+    setConstraints({
+      decisionMode: "lowest-predicted",
+      maxUtilization: 92,
+      minLiquidityScore: 60,
+      maxRiskScore: 35
+    });
+    setCurrentProtocol("Aave");
+    setBorrowAmountState(dashboardMock.metric.activeBorrowUsd);
+    setScenarioId("normal");
     setBlockNumber((current) => current + 1);
   };
 
@@ -385,6 +497,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     borrowAmount,
     currentProtocol,
     isExecuting,
+    constraints,
     setScenario: (scenario) => {
       setScenarioId(scenario);
       setBlockNumber((current) => current + 1);
@@ -394,6 +507,17 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       setBlockNumber((current) => current + 1);
     },
     setAutoMode,
+    setCurrentProtocol: (protocol) => {
+      setCurrentProtocol(protocol);
+      setBlockNumber((current) => current + 1);
+    },
+    updatePool,
+    randomizeMarket,
+    resetMarket,
+    updateConstraints: (patch) => {
+      setConstraints((current) => ({ ...current, ...patch }));
+      setBlockNumber((current) => current + 1);
+    },
     manualTick,
     optimizeBorrow
   };
