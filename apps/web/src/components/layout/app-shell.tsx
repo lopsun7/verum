@@ -69,7 +69,7 @@ export function AppShell({
           </div>
         </aside>
 
-        <main className="flex-1 py-4">
+        <main className="flex-1 py-4 pb-24 lg:pb-4">
           <header className="mb-6 flex flex-col gap-4 rounded-[32px] border border-white/10 bg-white/6 px-6 py-6 backdrop-blur-xl md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs tracking-[0.32em] text-white/45 uppercase">Institutional Treasury Operating System</p>
@@ -92,7 +92,27 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between rounded-[26px] border border-white/10 bg-slate-950/90 px-3 py-3 shadow-[0_18px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl lg:hidden">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = currentPath === item.href;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] transition",
+                active ? "bg-[#ff9340]/14 text-white" : "text-white/58"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
-

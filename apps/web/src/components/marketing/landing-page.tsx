@@ -10,6 +10,7 @@ import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/card";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 const featureCards = [
   {
@@ -62,6 +63,16 @@ export function LandingPage() {
           </div>
         </header>
 
+        <div className="mb-10 flex gap-3 md:hidden">
+          <Link href="/dashboard" className={buttonVariants({ variant: "primary" })}>
+            Launch Terminal
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link href="/risk-terminal" className={buttonVariants({ variant: "secondary" })}>
+            Risk
+          </Link>
+        </div>
+
         <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="pt-4">
             <Pill className="mb-5 border-[#ff9340]/25 bg-[#ff9340]/12 text-[#ffd4b0]">Live capital orchestration</Pill>
@@ -74,11 +85,9 @@ export function LandingPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/dashboard">
-                <Button className="min-w-44">
-                  Launch Terminal
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+              <Link href="/dashboard" className={buttonVariants({ variant: "primary", className: "min-w-44" })}>
+                Launch Terminal
+                <ArrowRight className="h-4 w-4" />
               </Link>
               <Button variant="secondary" className="min-w-44">
                 Watch Demo
