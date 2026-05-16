@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String           @id @default(cuid())
+  email       String           @unique
+  name        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  settings    UserSetting?
+  portfolios  PortfolioSnapshot[]
+  transactions Transaction[]
+}
+
+model UserSetting {
+  id                      String  @id @default(cuid())
+  userId                  String  @unique
+  autoRebalanceEnabled    Boolean @default(true)
+  defenseModeEnabled      Boolean @default(true)
+  targetStablecoinMix     Json
+  allowedChains           Json
+  maxExploitProbability   Float   @default(0.2)
+  maxOracleDependency     Float   @default(75)
+  user                    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PortfolioSnapshot {
+  id                 String               @id @default(cuid())
+  userId             String
+  totalValueUsd      Float
+  predictedNetApy    Float
+  realizedMonthlyAlpha Float
+  aiConfidence       Float
+  gasEfficiency      Float
+  protectedCapital   Float
+  capturedAt         DateTime             @default(now())
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chainAllocations   ChainAllocation[]
+  protocolAllocations ProtocolAllocation[]
+}
+
+model ChainAllocation {
+  id                 String             @id @default(cuid())
+  portfolioSnapshotId String
+  chain              String
+  valueUsd           Float
+  share              Float
+  change24h          Float
+  portfolioSnapshot  PortfolioSnapshot  @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+}
+
+model ProtocolAllocation {
+  id                  String             @id @default(cuid())
+  portfolioSnapshotId String
+  protocol            String
+  chain               String
+  asset               String
+  valueUsd            Float
+  currentApy          Float
+  predictedApy        Float
+  riskScore           Float
+  health              String
+  portfolioSnapshot   PortfolioSnapshot  @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+}
+
+model YieldPrediction {
+  id               String   @id @default(cuid())
+  protocol         String
+  chain            String
+  asset            String
+  horizonHours     Int
+  predictedApy     Float
+  confidence       Float
+  features         Json
+  modelFamily      String
+  createdAt        DateTime @default(now())
+}
+
+model ProtocolMetric {
+  id                        String   @id @default(cuid())
+  protocol                  String
+  chain                     String
+  tvlUsd                    Float
+  utilization               Float
+  smartContractRisk         Float
+  auditCoverage             Float
+  liquidityHealth           Float
+  governanceDecentralization Float
+  oracleDependency          Float
+  badDebtRisk               Float
+  exploitProbability        Float
+  capturedAt                DateTime @default(now())
+}
+
+model Transaction {
+  id                 String   @id @default(cuid())
+  userId             String
+  fromProtocol       String
+  toProtocol         String
+  fromChain          String
+  toChain            String
+  asset              String
+  amountUsd          Float
+  expectedGainBps    Float
+  confidence         Float
+  reason             String
+  status             String
+  txHash             String?
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AgentEvent {
+  id          String   @id @default(cuid())
+  agent       String
+  level       String
+  message     String
+  metadata    Json
+  createdAt   DateTime @default(now())
+}

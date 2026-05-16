@@ -1,0 +1,24 @@
+{
+  "services": [
+    {
+      "name": "aegis-web",
+      "path": "apps/web",
+      "template": "nextjs"
+    },
+    {
+      "name": "aegis-api",
+      "path": "apps/api",
+      "template": "nodejs"
+    },
+    {
+      "name": "aegis-agents",
+      "path": "services/agent-orchestrator",
+      "template": "nodejs"
+    },
+    {
+      "name": "aegis-postgres",
+      "template": "postgresql"
+    }
+  ]
+}
+

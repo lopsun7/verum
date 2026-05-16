@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+coverage
+.env
+.env.local
+.turbo
+*.log
+*.tsbuildinfo
+apps/api/prisma/dev.db
+apps/api/prisma/dev.db-journal
+packages/contracts/cache
+packages/contracts/artifacts
+packages/contracts/typechain-types

@@ -1,0 +1,33 @@
+{
+  "name": "@aegis/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/server.js",
+    "lint": "tsc --noEmit --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "format": "prettier --check .",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
+  },
+  "dependencies": {
+    "@aegis/shared": "*",
+    "@fastify/cors": "^11.1.0",
+    "@prisma/client": "^6.8.2",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.3.3",
+    "socket.io": "^4.8.1",
+    "zod": "^3.25.49"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "prettier": "^3.5.3",
+    "prisma": "^6.8.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
+
